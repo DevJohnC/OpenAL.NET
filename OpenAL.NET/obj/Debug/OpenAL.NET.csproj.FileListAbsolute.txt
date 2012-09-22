@@ -1,0 +1,6 @@
+c:\users\knyghtmare\documents\visual studio 2012\Projects\OpenAL.NET\OpenAL.NET\obj\Debug\OpenAL.NET.csprojResolveAssemblyReference.cache
+c:\users\knyghtmare\documents\visual studio 2012\Projects\OpenAL.NET\OpenAL.NET\bin\Debug\OpenAL32.dll
+c:\users\knyghtmare\documents\visual studio 2012\Projects\OpenAL.NET\OpenAL.NET\bin\Debug\OpenAL.NET.dll
+c:\users\knyghtmare\documents\visual studio 2012\Projects\OpenAL.NET\OpenAL.NET\bin\Debug\OpenAL.NET.pdb
+c:\users\knyghtmare\documents\visual studio 2012\Projects\OpenAL.NET\OpenAL.NET\obj\Debug\OpenAL.NET.dll
+c:\users\knyghtmare\documents\visual studio 2012\Projects\OpenAL.NET\OpenAL.NET\obj\Debug\OpenAL.NET.pdb
