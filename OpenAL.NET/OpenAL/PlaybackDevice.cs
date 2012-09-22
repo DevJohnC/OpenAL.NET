@@ -33,22 +33,20 @@ namespace FragLabs.Audio.Engines.OpenAL
         public void Play(byte[] samples, OpenALAudioFormat format, uint frequency)
         {
             Open();
-            bool startPlayback = false;
             if (sourceId == 0)
-            {
                 CreateSource();
-                startPlayback = true;
-            }
             CreateBuffer();
             API.alBufferData(bufferId, format, samples, samples.Length, frequency);
             API.alSourceQueueBuffers(sourceId, 1, new uint[] { bufferId });
-            if (startPlayback)
+            if (!IsPlaying)
                 API.alSourcePlay(sourceId);
             CleanupPlayedBuffers();
         }
 
         public void Stop()
         {
+            if (IsPlaying)
+                API.alSourceStop(sourceId);
             CleanupPlayedBuffers();
             DestroySource();
         }
@@ -107,6 +105,35 @@ namespace FragLabs.Audio.Engines.OpenAL
         /// Gets the device name.
         /// </summary>
         public string DeviceName { get; private set; }
+
+        public SourceState State
+        {
+            get
+            {
+                if (sourceId == 0)
+                    return SourceState.Uninitialized;
+
+                int state;
+                API.alGetSourcei(sourceId, IntSourceProperty.AL_SOURCE_STATE, out state);
+
+                return (SourceState)state;
+            }
+        }
+
+        public bool IsPlaying
+        {
+            get { return (this.State == SourceState.Playing); }
+        }
+
+        public bool IsPaused
+        {
+            get { return (this.State == SourceState.Paused); }
+        }
+
+        public bool IsStopped
+        {
+            get { return (this.State == SourceState.Stopped); }
+        }
 
         public void Dispose()
         {

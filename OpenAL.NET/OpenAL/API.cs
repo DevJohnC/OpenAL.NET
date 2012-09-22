@@ -162,4 +162,13 @@ namespace FragLabs.Audio.Engines.OpenAL
         AL_CONE_OUTER_ANGLE = 0x1002,
         AL_REFERENCE_DISTANCE = 0x1020
     }
+
+    public enum SourceState
+    {
+        Uninitialized = -1,
+        Initial = 0x1011,
+        Playing = 0x1012,
+        Paused = 0x1013,
+        Stopped = 0x1014
+    }
 }
