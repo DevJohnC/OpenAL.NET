@@ -58,6 +58,7 @@ namespace FragLabs.Audio.Engines.OpenAL
                 int buffers;
                 API.alGetSourcei(sourceId, IntSourceProperty.AL_BUFFERS_PROCESSED, out buffers);
                 uint[] removedBuffers = new uint[buffers];
+                API.alSourceUnqueueBuffers(sourceId, buffers, removedBuffers);
                 API.alDeleteBuffers(buffers, removedBuffers);
             }
         }
