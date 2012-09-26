@@ -13,7 +13,7 @@ namespace FragLabs.Audio.Engines.OpenAL
         IntPtr device = IntPtr.Zero;
         IntPtr context = IntPtr.Zero;
         uint sourceId = 0;
-        uint bufferId = 0;
+        List<uint> bufferIds = new List<uint>();
 
         public PlaybackDevice(string deviceName)
         {
@@ -35,7 +35,7 @@ namespace FragLabs.Audio.Engines.OpenAL
             Open();
             if (sourceId == 0)
                 CreateSource();
-            CreateBuffer();
+            var bufferId = CreateBuffer();
             API.alBufferData(bufferId, format, samples, samples.Length, frequency);
             API.alSourceQueueBuffers(sourceId, 1, new uint[] { bufferId });
             if (!IsPlaying)
@@ -60,6 +60,13 @@ namespace FragLabs.Audio.Engines.OpenAL
                 uint[] removedBuffers = new uint[buffers];
                 API.alSourceUnqueueBuffers(sourceId, buffers, removedBuffers);
                 API.alDeleteBuffers(buffers, removedBuffers);
+                lock (bufferIds)
+                {
+                    foreach (var bufferId in removedBuffers)
+                    {
+                        bufferIds.Remove(bufferId);
+                    }
+                }
             }
         }
 
@@ -70,11 +77,14 @@ namespace FragLabs.Audio.Engines.OpenAL
             sourceId = 0;
         }
 
-        void CreateBuffer()
+        uint CreateBuffer()
         {
             uint[] buffers = new uint[1];
             API.alGenBuffers(1, buffers);
-            bufferId = buffers[0];
+            var bufferId = buffers[0];
+            lock (bufferIds)
+                bufferIds.Add(bufferId);
+            return bufferId;
         }
 
         void CreateSource()
@@ -97,13 +107,16 @@ namespace FragLabs.Audio.Engines.OpenAL
         {
             if (device == IntPtr.Zero)
                 return;
+
+            if (bufferIds.Count > 0)
+            {
+                API.alDeleteBuffers(bufferIds.Count, bufferIds.ToArray());
+                bufferIds.Clear();
+            }
             API.alcMakeContextCurrent(IntPtr.Zero);
             API.alcDestroyContext(context);
-            try
-            {
-                API.alcCloseDevice(device);
-            }
-            catch (Exception) { }
+            API.alcCloseDevice(device);
+            device = IntPtr.Zero;
         }
 
         /// <summary>
