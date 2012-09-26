@@ -48,10 +48,13 @@ namespace FragLabs.Audio.Engines.OpenAL
         {
             if (device == IntPtr.Zero)
                 return;
-            stopCaptureThread = true;
-            API.alcCaptureStop(device);
-            pollingThread = null;
-            Close();
+            if (pollingThread != null)
+            {
+                stopCaptureThread = true;
+                API.alcCaptureStop(device);
+                pollingThread = null;
+                Close();
+            }
         }
 
         void Open()
