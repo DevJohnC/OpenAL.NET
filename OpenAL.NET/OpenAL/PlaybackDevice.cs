@@ -99,7 +99,11 @@ namespace FragLabs.Audio.Engines.OpenAL
                 return;
             API.alcMakeContextCurrent(IntPtr.Zero);
             API.alcDestroyContext(context);
-            API.alcCloseDevice(device);
+            try
+            {
+                API.alcCloseDevice(device);
+            }
+            catch (Exception) { }
         }
 
         /// <summary>
