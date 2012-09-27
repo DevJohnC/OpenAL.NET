@@ -33,6 +33,7 @@ namespace FragLabs.Audio.Engines.OpenAL
         public void Play(byte[] samples, OpenALAudioFormat format, uint frequency)
         {
             Open();
+            API.alcMakeContextCurrent(context);
             if (sourceId == 0)
                 CreateSource();
             var bufferId = CreateBuffer();
@@ -100,7 +101,6 @@ namespace FragLabs.Audio.Engines.OpenAL
                 return;
             device = API.alcOpenDevice(DeviceName);
             context = API.alcCreateContext(device, IntPtr.Zero);
-            API.alcMakeContextCurrent(context);
         }
 
         void Close()
