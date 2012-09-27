@@ -30,8 +30,6 @@ namespace FragLabs.Audio.Engines.OpenAL
         /// </summary>
         public void StartCapturing(int sampleRate, OpenALAudioFormat format)
         {
-            if (device != IntPtr.Zero)
-                return;
             Format = format;
             SampleRate = sampleRate;
             Open();
@@ -73,6 +71,7 @@ namespace FragLabs.Audio.Engines.OpenAL
             if (device == IntPtr.Zero)
                 return;
             API.alcCaptureCloseDevice(device);
+            device = IntPtr.Zero;
         }
 
         unsafe void PollingThread()
