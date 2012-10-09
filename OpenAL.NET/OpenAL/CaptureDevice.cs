@@ -136,6 +136,13 @@ namespace FragLabs.Audio.Engines.OpenAL
         /// </summary>
         public string DeviceName { get; private set; }
 
+        public override bool Equals(object obj)
+        {
+            if (!(obj is CaptureDevice))
+                return false;
+            return ((CaptureDevice)obj).DeviceName == DeviceName;
+        }
+
         public void Dispose()
         {
             StopCapturing();

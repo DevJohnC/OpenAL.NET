@@ -153,6 +153,13 @@ namespace FragLabs.Audio.Engines.OpenAL
             get { return (this.State == SourceState.Stopped); }
         }
 
+        public override bool Equals(object obj)
+        {
+            if (!(obj is PlaybackDevice))
+                return false;
+            return ((PlaybackDevice)obj).DeviceName == DeviceName;
+        }
+
         public void Dispose()
         {
             Stop();
