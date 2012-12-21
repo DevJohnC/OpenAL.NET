@@ -106,7 +106,7 @@ namespace FragLabs.Audio.Engines.OpenAL
                     if (CapturedSamplesAvailable != null)
                         CapturedSamplesAvailable(this, buffer);
                 }
-                Thread.Sleep(TimeSpan.FromSeconds(0.05));
+                Thread.Sleep(1);
             }
         }
 
