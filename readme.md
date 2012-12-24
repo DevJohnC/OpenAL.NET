@@ -20,4 +20,4 @@ The combination of OpenAL.NET source code and OpenAL Soft is also licensed under
 
 ## Credits
 
-Some source code in OpenAL.NET is based on work by Eric Maupin's [Gablarski](https://github.com/ermau/Gablarski/).
+Some source code in OpenAL.NET is based on work by Eric Maupin in his [Gablarski](https://github.com/ermau/Gablarski/) project.
