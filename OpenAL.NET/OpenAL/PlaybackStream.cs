@@ -13,6 +13,58 @@ namespace FragLabs.Audio.Engines.OpenAL
         private uint _sourceId;
         private readonly List<uint> _bufferIds = new List<uint>();
 
+        public Listener Listener { get; private set; }
+        public Vector3 ALPosition
+        {
+            get
+            {
+                if (_sourceId == 0)
+                    throw new ObjectDisposedException("sourceId");
+                lock (typeof(PlaybackStream))
+                {
+                    API.alcMakeContextCurrent(_context);
+                    float val1, val2, val3;
+                    API.alGetSource3f(_sourceId, FloatSourceProperty.AL_POSITION, out val1, out val2, out val3);
+                    return new Vector3() { X = val1, Y = val2, Z = val3 };
+                }
+            }
+            set
+            {
+                if (_sourceId == 0)
+                    throw new ObjectDisposedException("sourceId");
+                lock (typeof(PlaybackStream))
+                {
+                    API.alcMakeContextCurrent(_context);
+                    API.alSource3f(_sourceId, FloatSourceProperty.AL_POSITION, value.X, value.Y, value.Z );
+                }
+            }
+        }
+        public Vector3 Velocity
+        {
+            get
+            {
+                if (_sourceId == 0)
+                    throw new ObjectDisposedException("sourceId");
+                lock (typeof(PlaybackStream))
+                {
+                    API.alcMakeContextCurrent(_context);
+                    float val1, val2, val3;
+                    API.alGetSource3f(_sourceId, FloatSourceProperty.AL_VELOCITY, out val1, out val2, out val3);
+                    return new Vector3() { X = val1, Y = val2, Z = val3 };
+                }
+            }
+            set
+            {
+                if (_sourceId == 0)
+                    throw new ObjectDisposedException("sourceId");
+                lock (typeof(PlaybackStream))
+                {
+                    API.alcMakeContextCurrent(_context);
+                    API.alSource3f(_sourceId, FloatSourceProperty.AL_VELOCITY, value.X, value.Y, value.Z);
+                }
+            }
+        }
+
         internal PlaybackStream(uint sampleRate, OpenALAudioFormat format, PlaybackDevice device, IntPtr context)
         {
             _sampleRate = sampleRate;
@@ -20,6 +72,7 @@ namespace FragLabs.Audio.Engines.OpenAL
             _device = device;
             _context = context;
             CreateSource();
+            Listener = new Listener(_context);
         }
 
         void CreateSource()
@@ -154,6 +207,8 @@ namespace FragLabs.Audio.Engines.OpenAL
 
             lock (typeof (PlaybackStream))
             {
+                Listener = null;
+
                 if (IsPlaying)
                     API.alSourceStop(_sourceId);
                 CleanupPlayedBuffers();

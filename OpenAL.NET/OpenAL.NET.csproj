@@ -43,10 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OpenAL\Vector3.cs" />
     <Compile Include="OpenAL\CaptureStream.cs" />
     <Compile Include="OpenAL.cs" />
     <Compile Include="OpenAL\API.cs" />
     <Compile Include="OpenAL\CaptureDevice.cs" />
+    <Compile Include="OpenAL\Listener.cs" />
+    <Compile Include="OpenAL\Orientation.cs" />
     <Compile Include="OpenAL\PlaybackDevice.cs" />
     <Compile Include="OpenAL\PlaybackStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

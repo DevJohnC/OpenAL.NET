@@ -10,34 +10,53 @@ namespace FragLabs.Audio.Engines
     /// </summary>
     public class OpenALHelper
     {
-        public static CaptureDevice[] CaptureDevices()
+        private static CaptureDevice[] _captureDevices;
+        public static CaptureDevice[] CaptureDevices
         {
-            var strings = ReadStringsFromMemory(API.alcGetString(IntPtr.Zero, (int)ALCStrings.ALC_CAPTURE_DEVICE_SPECIFIER));
-            var ret = new CaptureDevice[strings.Length];
-            for (int i = 0; i < ret.Length; i++)
+            get
             {
-                ret[i] = new CaptureDevice(strings[i]);
+                if (_captureDevices == null)
+                {
+                    var strings =
+                        ReadStringsFromMemory(API.alcGetString(IntPtr.Zero,
+                                                               (int) ALCStrings.ALC_CAPTURE_DEVICE_SPECIFIER));
+                    _captureDevices = new CaptureDevice[strings.Length];
+                    for (var i = 0; i < _captureDevices.Length; i++)
+                    {
+                        _captureDevices[i] = new CaptureDevice(strings[i]);
+                    }
+                }
+                return _captureDevices;
             }
-            return ret;
         }
 
-        public static PlaybackDevice[] PlaybackDevices()
+        private static PlaybackDevice[] _playbackDevices;
+        public static PlaybackDevice[] PlaybackDevices
         {
-            string[] strings = new string[0];
-            if (GetIsExtensionPresent("ALC_ENUMERATE_ALL_EXT"))
+            get
             {
-                strings = ReadStringsFromMemory(API.alcGetString(IntPtr.Zero, (int)ALCStrings.ALC_ALL_DEVICES_SPECIFIER));
+                if (_playbackDevices == null)
+                {
+                    var strings = new string[0];
+                    if (GetIsExtensionPresent("ALC_ENUMERATE_ALL_EXT"))
+                    {
+                        strings =
+                            ReadStringsFromMemory(API.alcGetString(IntPtr.Zero,
+                                                                   (int) ALCStrings.ALC_ALL_DEVICES_SPECIFIER));
+                    }
+                    else if (GetIsExtensionPresent("ALC_ENUMERATION_EXT"))
+                    {
+                        strings =
+                            ReadStringsFromMemory(API.alcGetString(IntPtr.Zero, (int) ALCStrings.ALC_DEVICE_SPECIFIER));
+                    }
+                    _playbackDevices = new PlaybackDevice[strings.Length];
+                    for (var i = 0; i < _playbackDevices.Length; i++)
+                    {
+                        _playbackDevices[i] = new PlaybackDevice(strings[i]);
+                    }
+                }
+                return _playbackDevices;
             }
-            else if (GetIsExtensionPresent("ALC_ENUMERATION_EXT"))
-            {
-                strings = ReadStringsFromMemory(API.alcGetString(IntPtr.Zero, (int)ALCStrings.ALC_DEVICE_SPECIFIER));
-            }
-            var ret = new PlaybackDevice[strings.Length];
-            for (int i = 0; i < ret.Length; i++)
-            {
-                ret[i] = new PlaybackDevice(strings[i]);
-            }
-            return ret;
         }
 
         internal static string[] ReadStringsFromMemory(IntPtr location)

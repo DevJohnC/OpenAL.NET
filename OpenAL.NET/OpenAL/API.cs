@@ -84,7 +84,13 @@ namespace FragLabs.Audio.Engines.OpenAL
         internal static extern void alGetSourcef(uint sourceID, FloatSourceProperty property, out float value);
 
         [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alGetSource3f(uint sourceID, FloatSourceProperty property, out float val1, out float val2, out float val3);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern void alSourcef(uint sourceID, FloatSourceProperty property, float value);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alSource3f(uint sourceID, FloatSourceProperty property, float val1, float val2, float val3);
 
         [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern void alGetBufferi(uint bufferID, ALEnum property, out int value);
@@ -97,6 +103,24 @@ namespace FragLabs.Audio.Engines.OpenAL
 
         [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
         internal static extern void alDeleteBuffers(int numBuffers, uint[] bufferIDs);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alListenerf(FloatSourceProperty param, float val);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alListenerfv(FloatSourceProperty param, float[] val);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alListener3f(FloatSourceProperty param, float val1, float val2, float val3);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alGetListener3f(FloatSourceProperty param, out float val1, out float val2, out float val3);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alGetListenerf(FloatSourceProperty param, out float val);
+
+        [DllImport("OpenAL32.dll", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void alGetListenerfv(FloatSourceProperty param, float[] val);
     }
 
     internal enum ALCStrings : int
@@ -152,9 +176,13 @@ namespace FragLabs.Audio.Engines.OpenAL
     internal enum FloatSourceProperty
     {
         AL_PITCH = 0x1003,
+        AL_POSITION = 0x1004,
+        AL_DIRECTION = 0x1005,
+        AL_VELOCITY = 0x1006,
         AL_GAIN = 0x100A,
         AL_MIN_GAIN = 0x100D,
         AL_MAX_GAIN = 0x100E,
+        AL_ORIENTATION = 0x100F,
         AL_MAX_DISTANCE = 0x1023,
         AL_ROLLOFF_FACTOR = 0x1021,
         AL_CONE_OUTER_GAIN = 0x1022,
