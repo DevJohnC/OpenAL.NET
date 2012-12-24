@@ -10,10 +10,9 @@ namespace FragLabs.Audio.Engines.OpenAL
     /// </summary>
     public class PlaybackDevice : IDisposable
     {
-        IntPtr device = IntPtr.Zero;
-        IntPtr context = IntPtr.Zero;
-        uint sourceId = 0;
-        List<uint> bufferIds = new List<uint>();
+        IntPtr _device = IntPtr.Zero;
+        IntPtr _context = IntPtr.Zero;
+        readonly List<PlaybackStream> _streams = new List<PlaybackStream>(); 
 
         public PlaybackDevice(string deviceName)
         {
@@ -24,134 +23,48 @@ namespace FragLabs.Audio.Engines.OpenAL
             Dispose();
         }
 
-        /// <summary>
-        /// Plays the given data using the device.
-        /// </summary>
-        /// <param name="samples"></param>
-        /// <param name="format"></param>
-        /// <param name="frequency"></param>
-        public void Play(byte[] samples, OpenALAudioFormat format, uint frequency)
+        public PlaybackStream OpenStream(uint sampleRate, OpenALAudioFormat format)
         {
-            Open();
-            API.alcMakeContextCurrent(context);
-            if (sourceId == 0)
-                CreateSource();
-            var bufferId = CreateBuffer();
-            API.alBufferData(bufferId, format, samples, samples.Length, frequency);
-            API.alSourceQueueBuffers(sourceId, 1, new uint[] { bufferId });
-            if (!IsPlaying)
-                API.alSourcePlay(sourceId);
-            CleanupPlayedBuffers();
+            EnsureDeviceIsOpen();
+            var ret = new PlaybackStream(sampleRate, format, this, _context);
+            lock(_streams)
+                _streams.Add(ret);
+            return ret;
         }
 
-        public void Stop()
+        internal void ClosedStream(PlaybackStream stream)
         {
-            if (IsPlaying)
-                API.alSourceStop(sourceId);
-            CleanupPlayedBuffers();
-            DestroySource();
-        }
-
-        void CleanupPlayedBuffers()
-        {
-            if (sourceId != 0)
+            lock (_streams)
             {
-                int buffers;
-                API.alGetSourcei(sourceId, IntSourceProperty.AL_BUFFERS_PROCESSED, out buffers);
-                uint[] removedBuffers = new uint[buffers];
-                API.alSourceUnqueueBuffers(sourceId, buffers, removedBuffers);
-                API.alDeleteBuffers(buffers, removedBuffers);
-                lock (bufferIds)
+                _streams.Remove(stream);
+                if (_streams.Count == 0)
                 {
-                    foreach (var bufferId in removedBuffers)
-                    {
-                        bufferIds.Remove(bufferId);
-                    }
+                    CloseDevice();
                 }
             }
         }
 
-        void DestroySource()
+        void EnsureDeviceIsOpen()
         {
-            uint[] sources = new uint[1];
-            API.alDeleteSources(1, sources);
-            sourceId = 0;
+            if (_device != IntPtr.Zero) return;
+            _device = API.alcOpenDevice(DeviceName);
+            _context = API.alcCreateContext(_device, IntPtr.Zero);
         }
 
-        uint CreateBuffer()
+        private void CloseDevice()
         {
-            uint[] buffers = new uint[1];
-            API.alGenBuffers(1, buffers);
-            var bufferId = buffers[0];
-            lock (bufferIds)
-                bufferIds.Add(bufferId);
-            return bufferId;
-        }
-
-        void CreateSource()
-        {
-            uint[] sources = new uint[1];
-            API.alGenSources(1, sources);
-            sourceId = sources[0];
-        }
-
-        void Open()
-        {
-            if (device != IntPtr.Zero)
-                return;
-            device = API.alcOpenDevice(DeviceName);
-            context = API.alcCreateContext(device, IntPtr.Zero);
-        }
-
-        void Close()
-        {
-            if (device == IntPtr.Zero)
+            if (_device == IntPtr.Zero)
                 return;
 
-            if (bufferIds.Count > 0)
-            {
-                API.alDeleteBuffers(bufferIds.Count, bufferIds.ToArray());
-                bufferIds.Clear();
-            }
-            API.alcMakeContextCurrent(IntPtr.Zero);
-            API.alcDestroyContext(context);
-            API.alcCloseDevice(device);
-            device = IntPtr.Zero;
+            API.alcDestroyContext(_context);
+            API.alcCloseDevice(_device);
+            _device = IntPtr.Zero;
         }
 
         /// <summary>
         /// Gets the device name.
         /// </summary>
         public string DeviceName { get; private set; }
-
-        public SourceState State
-        {
-            get
-            {
-                if (sourceId == 0)
-                    return SourceState.Uninitialized;
-
-                int state;
-                API.alGetSourcei(sourceId, IntSourceProperty.AL_SOURCE_STATE, out state);
-
-                return (SourceState)state;
-            }
-        }
-
-        public bool IsPlaying
-        {
-            get { return (this.State == SourceState.Playing); }
-        }
-
-        public bool IsPaused
-        {
-            get { return (this.State == SourceState.Paused); }
-        }
-
-        public bool IsStopped
-        {
-            get { return (this.State == SourceState.Stopped); }
-        }
 
         public override bool Equals(object obj)
         {
@@ -162,8 +75,7 @@ namespace FragLabs.Audio.Engines.OpenAL
 
         public void Dispose()
         {
-            Stop();
-            Close();
+
         }
     }
 }

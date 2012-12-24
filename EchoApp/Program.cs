@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using FragLabs.Audio.Engines;
 using FragLabs.Audio.Engines.OpenAL;
 
@@ -10,7 +11,8 @@ namespace EchoApp
     class Program
     {
         private static byte[] _readBuffer;
-        private static PlaybackDevice _playback;
+        private static Stream _capture;
+        private static Stream _playback;
 
         static void Main(string[] args)
         {
@@ -18,28 +20,31 @@ namespace EchoApp
             Console.WriteLine("Opening \"{0}\" for playback", OpenALHelper.PlaybackDevices()[0].DeviceName);
             Console.WriteLine("Opening \"{0}\" for capture", OpenALHelper.CaptureDevices()[0].DeviceName);
 
-            _playback = OpenALHelper.PlaybackDevices()[0];
-
-            var readerStream = OpenALHelper.CaptureDevices()[0].OpenStream(48000, OpenALAudioFormat.Mono16Bit, 10);
-            readerStream.BeginRead(_readBuffer, 0, _readBuffer.Length, Callback, readerStream);
+            _playback = OpenALHelper.PlaybackDevices()[0].OpenStream(48000, OpenALAudioFormat.Mono16Bit);
+            _capture = OpenALHelper.CaptureDevices()[0].OpenStream(48000, OpenALAudioFormat.Mono16Bit, 10);
+            _capture.BeginRead(_readBuffer, 0, _readBuffer.Length, Callback, null);
 
             Console.WriteLine("Press [ENTER] to exit");
             Console.ReadLine();
-            readerStream.Close();
-            readerStream.Dispose();
+
+            _playback.Close();
+            _playback.Dispose();
+            _capture.Close();
+            _capture.Dispose();
         }
 
         private static void Callback(IAsyncResult ar)
         {
-            var readerStream = (CaptureStream)ar.AsyncState;
-            if (!readerStream.CanRead) return;
+            if (!_capture.CanRead) return;
 
-            var read = readerStream.EndRead(ar);
-            if (read > 0)
+            var read = _capture.EndRead(ar);
+            if (read > 0 && _playback.CanWrite)
             {
-                _playback.Play(_readBuffer, OpenALAudioFormat.Mono16Bit, 48000);
+                //  if you want to use BeginWrite here instead you need to copy the _readBuffer to avoid race conditions reader/writing the same buffer asynchronously
+                //  alternatively you can use multiple buffers to avoid such race conditions
+                _playback.Write(_readBuffer, 0, read);
             }
-            readerStream.BeginRead(_readBuffer, 0, _readBuffer.Length, Callback, readerStream);
+            _capture.BeginRead(_readBuffer, 0, _readBuffer.Length, Callback, null);
         }
     }
 }
