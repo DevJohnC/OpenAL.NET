@@ -146,6 +146,7 @@ namespace FragLabs.Audio.Engines.OpenAL
             lock (typeof (PlaybackStream))
             {
                 API.alcMakeContextCurrent(_context);
+                CleanupPlayedBuffers();
                 var bufferId = CreateBuffer();
                 if (offset == 0)
                     API.alBufferData(bufferId, _format, buffer, count, _sampleRate);
@@ -158,7 +159,6 @@ namespace FragLabs.Audio.Engines.OpenAL
                 API.alSourceQueueBuffers(_sourceId, 1, new[] {bufferId});
                 if (!IsPlaying)
                     API.alSourcePlay(_sourceId);
-                CleanupPlayedBuffers();
             }
         }
 
@@ -177,6 +177,8 @@ namespace FragLabs.Audio.Engines.OpenAL
             if (_sourceId == 0) return;
             int buffers;
             API.alGetSourcei(_sourceId, IntSourceProperty.AL_BUFFERS_PROCESSED, out buffers);
+            if (buffers < 1) return;
+
             var removedBuffers = new uint[buffers];
             API.alSourceUnqueueBuffers(_sourceId, buffers, removedBuffers);
             API.alDeleteBuffers(buffers, removedBuffers);

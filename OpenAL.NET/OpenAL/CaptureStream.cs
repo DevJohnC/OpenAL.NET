@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -30,6 +31,8 @@ namespace FragLabs.Audio.Engines.OpenAL
         /// </summary>
         private object _readWriteLock = new object();
 
+        private int _samplesPerBuffer;
+
         /// <summary>
         /// Create a capture stream on given device.
         /// </summary>
@@ -42,6 +45,7 @@ namespace FragLabs.Audio.Engines.OpenAL
             if (deviceName == null) throw new ArgumentNullException("deviceName");
 
             var samplesPerBuffer = sampleRate / (1000 / bufferSizeMs);
+            _samplesPerBuffer = samplesPerBuffer;
 
             _bytesPerSample = 1;
             switch (format)
@@ -58,7 +62,7 @@ namespace FragLabs.Audio.Engines.OpenAL
             }
 
             var bufferSize = samplesPerBuffer * _bytesPerSample;
-            _device = API.alcCaptureOpenDevice(deviceName, (uint)sampleRate, format, bufferSize);
+            _device = API.alcCaptureOpenDevice(deviceName, (uint)sampleRate, format, bufferSize * 4);
         }
 
         public override bool CanRead
@@ -121,7 +125,7 @@ namespace FragLabs.Audio.Engines.OpenAL
                 }
 
                 var samplesAvailable = GetSamplesAvailable();
-                while (samplesAvailable == 0)
+                while (samplesAvailable < _samplesPerBuffer)
                 {
                     //  Closed/Disposed?
                     if (!CanRead)
